@@ -1,0 +1,35 @@
+{
+  "name": "puma",
+  "author": {
+    "name": "Soh Guan Hoe",
+    "email": "sohguanh@gmail.com",
+    "url": "https://github.com/sohguanh/puma.git"
+  },
+  "version": "1.0.0",
+  "license": "MIT",
+  "description": "Node.js mini-web framework",
+  "keywords": [
+    "web framework",
+    "mini"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sohguanh/puma.git"
+  },
+  "main": "puma.js",
+  "private": true,
+  "scripts": {},
+  "dependencies": {
+    "winston": "^3.2.1"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">= 10.0.0",
+    "npm": ">= 6.0.0"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not ie <= 8"
+  ]
+}
