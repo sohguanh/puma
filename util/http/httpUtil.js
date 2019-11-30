@@ -1,4 +1,5 @@
 const http = require('http')
+const httpRewriteUtil = require('./httpRewriteUtil')
 
 class Handler {
   constructor () {
@@ -29,6 +30,7 @@ global.HTTP_METHOD = {
 }
 
 global.registeredHandlersMap = new Map()
+global.placeHolderRe = /(?:{\s*(\w+)\s*}|:\s*(\w+))/i
 
 function registerHandler (url, clsObj, httpMethods) {
   registerChainHandler(url, [clsObj], httpMethods)
@@ -48,6 +50,16 @@ function registerChainHandlerRegex (url, clsObjArray, httpMethods) {
   global.registeredHandlersREMap.set(url, { handler_class: clsObjArray, httpMethods: httpMethods, re: new RegExp(url, 'i') })
 }
 
+global.registeredHandlersPathParamMap = new Map()
+
+function registerHandlerPathParam (url, clsObj, httpMethods) {
+  registerChainHandlerPathParam(url, [clsObj], httpMethods)
+}
+
+function registerChainHandlerPathParam (url, clsObjArray, httpMethods) {
+  global.registeredHandlersPathParamMap.set(url, { handler_class: clsObjArray, httpMethods: httpMethods, pathToken: url.split('/') })
+}
+
 function process (inputParam) {
   const logger = inputParam.logger
   const config = inputParam.config
@@ -55,13 +67,17 @@ function process (inputParam) {
   const res = inputParam.res
 
   logger.info(req.url)
-  const urlpath = req.url.split('?')[0]
+  let urlpath = req.url.split('?')[0]
 
   if (urlpath === '/') {
     res.writeHead(200, { Server: config.Site.Name, 'Content-Type': 'text/plain' })
     res.write('I am alive!')
     res.end()
     return
+  }
+
+  if (config.Site.UrlRewrite) {
+    urlpath = httpRewriteUtil.getRewriteUrl(inputParam, req.url)
   }
 
   // iterate registered_and/or chain handlers to see if key match req.url
@@ -96,6 +112,36 @@ function process (inputParam) {
     }
   }
 
+  // iterate registered_and/or chain path param handlers to see if key match req.url
+  for (const key of global.registeredHandlersPathParamMap.keys()) {
+    const handler = global.registeredHandlersPathParamMap.get(key)
+    const actualToken = urlpath.split('/')
+    if (handler.pathToken.length === actualToken.length) {
+      const paramMap = {}
+      let found = true
+      for (let index = 0; index < handler.pathToken.length; index++) {
+        const match = global.placeHolderRe.exec(handler.pathToken[index])
+        if (match !== null) {
+          paramMap[match[0]] = actualToken[index]
+        } else if (handler.pathToken[index] !== actualToken[index]) {
+          found = false
+          break
+        }
+      }
+
+      if (found) {
+        logger.info('registered path param handler found ' + key)
+        if (handler.httpMethods.includes(req.method)) {
+          for (let index = 0; index < handler.handler_class.length; index++) {
+            const ret = handler.handler_class[index].handle(req, res, paramMap)
+            if (ret === undefined || ret === false) break
+          }
+        }
+        return
+      }
+    }
+  }
+
   defaultNotFound(req, res, config)
 }
 
@@ -120,6 +166,7 @@ function getUrlParamMap (req) {
 }
 
 module.exports = {
+  placeHolderRe: global.placeHolderRe,
   HTTP_METHOD: global.HTTP_METHOD,
   Handler,
   PathParamHandler,
@@ -129,5 +176,7 @@ module.exports = {
   registerHandler,
   registerChainHandler,
   registerHandlerRegex,
-  registerChainHandlerRegex
+  registerChainHandlerRegex,
+  registerHandlerPathParam,
+  registerChainHandlerPathParam
 }
