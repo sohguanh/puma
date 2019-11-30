@@ -1,14 +1,14 @@
-global.config = undefined;
+global.config = undefined
 
-exports.Config = function() {
-    if (config === undefined) {
-        const fs = require('fs');
-        const process = require('process');
-        const path = require('path');
-        
-        let data = JSON.parse(fs.readFileSync(process.cwd()+path.sep+'config'+path.sep+'config.json'));
-        let env = data.Env;
-        config = data[env];    
-    }
-    return config;
-};
+exports.Config = function () {
+  if (global.config === undefined) {
+    const fs = require('fs')
+    const process = require('process')
+    const path = require('path')
+
+    const data = JSON.parse(fs.readFileSync(process.cwd() + path.sep + 'config' + path.sep + 'config.json'))
+    const env = data.Env
+    global.config = data[env]
+  }
+  return global.config
+}
