@@ -1,6 +1,6 @@
 global.config = undefined
 
-exports.Config = function () {
+exports.Config = () => {
   if (global.config === undefined) {
     const fs = require('fs')
     const process = require('process')
