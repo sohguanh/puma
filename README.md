@@ -71,6 +71,22 @@ To shutdown, send a SIGINT signal. Ctrl-C for Windows Command Prompt. kill -SIGI
 | ht&#8203;tp://localhost:8000/test/me/5/123/456 | ht&#8203;tp://localhost:8000/hello5/123/456 | 
 | ht&#8203;tp://localhost:8000/test/me/6/123/456 | ht&#8203;tp://localhost:8000/hello6/123/456 |
 
+**Template Engines**
+
+There are just too many choices for Node.js template engines that to reinvent the wheel will be a waste of time. Hence I decided not to write one from scratch for this mini-web framework.
+
+The following is a list of important (but not limited) template engines for Node.js you can consider.
+
+- [Pug](https://github.com/pugjs/pug)
+- [Vash](https://github.com/kirbysayshi/vash)  
+- [EJS](https://github.com/tj/ejs)
+- [Mustache](https://github.com/janl/mustache.js)
+- [Dust.js](https://github.com/linkedin/dustjs)
+- [Nunjucks](https://github.com/mozilla/nunjucks)
+- [Handlebars](https://github.com/wycats/handlebars.js)
+- [atpl](https://github.com/soywiz/atpl.js)
+- [haml](https://github.com/tj/haml.js)
+
 **Contact**
 
 Any bug/suggestion/feedback can mail to sohguanh@gmail.com
