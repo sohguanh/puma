@@ -5,14 +5,38 @@ function startUpInit (inputParam) {
   // ENTRY POINT: perform any pre-loading/caching of objects or anything else before server startup in here (if any)
   const logger = inputParam.logger
   const config = inputParam.config
+  const dbPool = inputParam.dbPool
   logger.info('startup init ...')
+
+  // take note below is an example on how to use dbPool
+  if (dbPool !== undefined) {
+    dbPool.getConnection((err, connection) => {
+      if (err) {
+        logger.error(err) // not connected!
+        return
+      }
+      connection.query('SELECT CONVERT(CURRENT_DATE(), CHAR) AS CURR_DATE', (error, results, fields) => {
+        logger.info(results[0].CURR_DATE)
+        connection.release()
+        if (error) logger.error(error)
+      })
+    })
+  }
 }
 
 function shutdownCleanUp (inputParam) {
   // ENTRY POINT: perform any cleaning up of objects or anything else before server shutdown in here (if any)
   const logger = inputParam.logger
   const config = inputParam.config
+  const dbPool = inputParam.dbPool
   logger.info('shutdown cleanup ...')
+
+  // take note below is an example on how to use dbPool
+  if (dbPool !== undefined) {
+    dbPool.end((err) => {
+      if (err) logger.error(err)
+    })
+  }
 }
 
 class MyHandler extends httpUtil.Handler {
@@ -87,6 +111,7 @@ function registerHandlers (inputParam) {
   // ENTRY POINT: register all handlers in here
   const logger = inputParam.logger
   const config = inputParam.config
+  const dbPool = inputParam.dbPool
   logger.info('register all handlers ...')
 
   // take note below are just examples on how to register handlers to the url
@@ -94,7 +119,8 @@ function registerHandlers (inputParam) {
   // must implement "interface" in httpUtil.Handler
   const param = {
     config: config,
-    logger: logger
+    logger: logger,
+    dbPool: dbPool
   }
   httpUtil.registerHandler('/hello1', new MyHandler('My Handler!', param), [httpUtil.HTTP_METHOD.GET, httpUtil.HTTP_METHOD.POST])
 
