@@ -44,11 +44,35 @@ class MyHandler extends httpUtil.Handler {
     super()
     this.name = name
     this.config = inputParam.config
+    this.inputParam = inputParam
   }
 
   handle (req, res) { // make sure this method return boolean if use as ChainHandler
-    res.writeHead(200, { Server: this.config.Site.Name, 'Content-Type': 'text/plain' })
+    res.writeHead(200, { Server: this.config.Site.Name, 'Content-Type': 'text/plain; charset=utf-8' })
     res.write(this.name)
+    res.write('\n' + 'Hello world')
+    const i18nUtil = require('../i18n/i18nUtil').getI18n(this.inputParam)
+    const sprintf = require('sprintf-js').sprintf
+
+    i18nUtil.setLocale('messages_en_US')
+    const howAreYouUS = i18nUtil.__('how.are.you')
+    const specialDateUS = sprintf(i18nUtil.__('special.date'), 3, 12, 1974)
+
+    i18nUtil.setLocale('messages_zh_CN')
+    const howAreYouCN = i18nUtil.__('how.are.you')
+    const specialDateCN = sprintf(i18nUtil.__('special.date'), 1974, 12, 3)
+
+    i18nUtil.setLocale('messages_zh_TW')
+    const howAreYouTW = i18nUtil.__('how.are.you')
+    const specialDateTW = sprintf(i18nUtil.__('special.date'), 1974, 12, 3)
+
+    res.write('\nEnglish : ' + howAreYouUS)
+    res.write('\nSimplified Chinese : ' + howAreYouCN)
+    res.write('\nTraditional Chinese : ' + howAreYouTW)
+    res.write('\n\nEnglish : ' + specialDateUS)
+    res.write('\nSimplified Chinese : ' + specialDateCN)
+    res.write('\nTraditional Chinese : ' + specialDateTW)
+
     const urlParamMap = httpUtil.getUrlParamMap(req)
     if (urlParamMap !== undefined) {
       res.write('\n' + JSON.stringify(urlParamMap, null, 2))
