@@ -11,7 +11,7 @@ This will install all the dependencies needed based on package.json
 Ensure config/config.json are setup correctly for your environment.
 
 *Step 3*
-Start to add your application specific code in util/http/handlerUtil.js. Refer to the extensive comments in the file to learn how to add your own handler for the url. function registerHandlers to register your handler.
+Start to add your application specific code in util/http/handlerUtil.js. Refer to the extensive comments in the file to learn how to add your own handler for the url. function registerHandlers to register your handler. function startUpInit, shutdownCleanUp show small examples on how to use dbPool which interface with MySQL.
 
 **Different methods for registering handlers to url**
 ```
