@@ -8,6 +8,12 @@ const httpUtil = require('./util/http/httpUtil')
 // const dbPool = require('./util/db/dbUtil').getDbPool(config) //uncomment this line once MySQL is up
 const dbPool = undefined // comment/remove this line once MySQL is up
 
+process.on('SIGINT', () => {
+  logger.info('received an interrupt signal, server shutting down ...')
+  handlerUtil.shutdownCleanUp({ config: config, logger: logger, dbPool: dbPool })
+  process.exit()
+})
+
 const startUpInitPromise = (config) => {
   return new Promise((resolve, reject) => {
     handlerUtil.startUpInit(config)
@@ -29,7 +35,7 @@ const start = async () => {
 start()
 
 const server = http.createServer((req, res) => {
-  httpUtil.process({
+  httpUtil.processReq({
     config: config,
     logger: logger,
     req: req,
@@ -47,9 +53,3 @@ const req = http.get('http://' + config.Site.Url + ':' + config.Site.Port, (res)
   logger.error(`error contact server: ${e.message}`)
 })
 req.setTimeout(config.Site.CheckAliveTimeoutSec * 1000)
-
-process.on('SIGINT', () => {
-  logger.info('received an interrupt signal, server shutting down ...')
-  handlerUtil.shutdownCleanUp({ config: config, logger: logger, dbPool: dbPool })
-  process.exit()
-})

@@ -1,5 +1,10 @@
 const http = require('http')
+const process = require('process')
+const path = require('path')
+const fs = require('fs')
+
 const httpRewriteUtil = require('./httpRewriteUtil')
+const httpStaticFileUtil = require('./httpStaticFileUtil')
 
 class Handler {
   constructor () {
@@ -60,7 +65,7 @@ function registerChainHandlerPathParam (url, clsObjArray, httpMethods) {
   global.registeredHandlersPathParamMap.set(url, { handler_class: clsObjArray, httpMethods: httpMethods, pathToken: url.split('/') })
 }
 
-function process (inputParam) {
+function processReq (inputParam) {
   const logger = inputParam.logger
   const config = inputParam.config
   const req = inputParam.req
@@ -78,6 +83,11 @@ function process (inputParam) {
 
   if (config.Site.UrlRewrite) {
     urlpath = httpRewriteUtil.getRewriteUrl(inputParam, req.url)
+  }
+
+  if (httpStaticFileUtil.existStaticFilePath(inputParam) && req.url.startsWith(config.Site.StaticFilePath)) {
+    serveStaticFile(inputParam, req.url, req, res)
+    return
   }
 
   // iterate registered_and/or chain handlers to see if key match req.url
@@ -165,6 +175,20 @@ function getUrlParamMap (req) {
   }
 }
 
+async function serveStaticFile (inputParam, url, req, res) {
+  const filename = process.cwd() + path.sep + url.split('?')[0]
+  if (httpStaticFileUtil.existFile(filename, inputParam)) {
+    fs.readFile(filename, 'binary', (err, file) => {
+      if (err) return defaultNotFound(req, res, inputParam.config)
+      res.writeHead(200, { 'Content-Type': httpStaticFileUtil.getMimeType(filename) })
+      res.write(file, 'binary')
+      res.end()
+    })
+  } else {
+    defaultNotFound(req, res, inputParam.config)
+  }
+}
+
 module.exports = {
   placeHolderRe: global.placeHolderRe,
   HTTP_METHOD: global.HTTP_METHOD,
@@ -172,7 +196,7 @@ module.exports = {
   PathParamHandler,
   defaultNotFound,
   getUrlParamMap,
-  process,
+  processReq,
   registerHandler,
   registerChainHandler,
   registerHandlerRegex,
