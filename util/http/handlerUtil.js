@@ -1,6 +1,7 @@
 const httpUtil = require('./httpUtil')
 const httpRewriteUtil = require('./httpRewriteUtil')
 const tokenBucket = require('../ratelimiter/tokenBucket')
+const slidingWindow = require('../ratelimiter/slidingWindow')
 
 function startUpInit (inputParam) {
   // ENTRY POINT: perform any pre-loading/caching of objects or anything else before server startup in here (if any)
@@ -135,6 +136,7 @@ class MyChainPathParamHandler extends httpUtil.PathParamHandler {
 class MyTokenBucketHandler extends httpUtil.Handler {
   constructor (inputParam) {
     super()
+    this.config = inputParam.config
     this.tokenBucket = new tokenBucket.TokenBucket(inputParam.maximumAmt, inputParam.refillDurationSec, inputParam.refillAmt)
     this.tokenBucket.startTimer()
   }
@@ -144,7 +146,25 @@ class MyTokenBucketHandler extends httpUtil.Handler {
     if (allowed) {
       return true
     } else {
-      res.end()
+      httpUtil.defaultNotFound(req, res, this.config)
+      return false
+    }
+  }
+}
+
+class MySlidingWindowHandler extends httpUtil.Handler {
+  constructor (param, requestPerMin = 30) {
+    super()
+    this.config = param.config
+    this.slidingWindow = new slidingWindow.SlidingWindow(param.logger, requestPerMin)
+  }
+
+  handle (req, res) {
+    const allowed = this.slidingWindow.isAllowed()
+    if (allowed) {
+      return true
+    } else {
+      httpUtil.defaultNotFound(req, res, this.config)
       return false
     }
   }
@@ -204,7 +224,10 @@ function registerHandlers (inputParam) {
   httpRewriteUtil.addRewriteUrlPathParam('/test/me/6/{hi}/:bye', '/hello6/$1/$2')
 
   // take note below are just examples on how to use endpoint rate limiter using token bucket algorithm
-  httpUtil.registerChainHandler('/hello7', [new MyTokenBucketHandler({ maximumAmt: 2, refillDurationSec: 5, refillAmt: 1 }), new MyChainHandler('My Chain Handler 7', false, param)], [httpUtil.HTTP_METHOD.GET, httpUtil.HTTP_METHOD.POST])
+  httpUtil.registerChainHandler('/hello7', [new MyTokenBucketHandler({ maximumAmt: 2, refillDurationSec: 5, refillAmt: 1, config: param.config }), new MyChainHandler('My Chain Handler 7', false, param)], [httpUtil.HTTP_METHOD.GET, httpUtil.HTTP_METHOD.POST])
+
+  // take note below are just examples on how to use endpoint rate limiter using sliding window algorithm
+  httpUtil.registerChainHandler('/hello8', [new MySlidingWindowHandler(param, 2), new MyChainHandler('My Chain Handler 8', false, param)], [httpUtil.HTTP_METHOD.GET, httpUtil.HTTP_METHOD.POST])
 }
 
 module.exports = {
