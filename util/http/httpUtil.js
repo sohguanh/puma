@@ -85,7 +85,7 @@ function processReq (inputParam) {
     urlpath = httpRewriteUtil.getRewriteUrl(inputParam, req.url)
   }
 
-  if (httpStaticFileUtil.existStaticFilePath(inputParam) && req.url.startsWith(config.Site.StaticFilePath)) {
+  if (staticFilePathExist(inputParam) && req.url.startsWith(config.Site.StaticFilePath)) {
     serveStaticFile(inputParam, req.url, req, res)
     return
   }
@@ -175,16 +175,35 @@ function getUrlParamMap (req) {
   }
 }
 
+async function staticFilePathExist (inputParam) {
+  const logger = inputParam.logger
+  let exist = false
+  try {
+    exist = await httpStaticFileUtil.existStaticFilePath(inputParam)
+  } catch (err) {
+    logger.error(err)
+  }
+  return exist
+}
+
 async function serveStaticFile (inputParam, url, req, res) {
+  const logger = inputParam.logger
   const filename = process.cwd() + path.sep + url.split('?')[0]
-  if (httpStaticFileUtil.existFile(filename, inputParam)) {
-    fs.readFile(filename, 'binary', (err, file) => {
-      if (err) return defaultNotFound(req, res, inputParam.config)
-      res.writeHead(200, { 'Content-Type': httpStaticFileUtil.getMimeType(filename) })
-      res.write(file, 'binary')
-      res.end()
-    })
-  } else {
+  try {
+    const exist = await httpStaticFileUtil.existFile(filename, inputParam)
+    if (exist) {
+      const mimeType = await httpStaticFileUtil.getMimeType(filename)
+      fs.readFile(filename, 'binary', (err, file) => {
+        if (err) return defaultNotFound(req, res, inputParam.config)
+        res.writeHead(200, { 'Content-Type': mimeType })
+        res.write(file, 'binary')
+        res.end()
+      })
+    } else {
+      defaultNotFound(req, res, inputParam.config)
+    }
+  } catch (err) {
+    logger.error(err)
     defaultNotFound(req, res, inputParam.config)
   }
 }
