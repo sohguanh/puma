@@ -1,5 +1,6 @@
 const httpUtil = require('./httpUtil')
 const httpRewriteUtil = require('./httpRewriteUtil')
+const tokenBucket = require('../ratelimiter/tokenBucket')
 
 function startUpInit (inputParam) {
   // ENTRY POINT: perform any pre-loading/caching of objects or anything else before server startup in here (if any)
@@ -131,6 +132,24 @@ class MyChainPathParamHandler extends httpUtil.PathParamHandler {
   }
 }
 
+class MyTokenBucketHandler extends httpUtil.Handler {
+  constructor (inputParam) {
+    super()
+    this.tokenBucket = new tokenBucket.TokenBucket(inputParam.maximumAmt, inputParam.refillDurationSec, inputParam.refillAmt)
+    this.tokenBucket.startTimer()
+  }
+
+  handle (req, res) { // make sure this method return boolean if use as ChainHandler
+    const allowed = this.tokenBucket.isAllowed()
+    if (allowed) {
+      return true
+    } else {
+      res.end()
+      return false
+    }
+  }
+}
+
 function registerHandlers (inputParam) {
   // ENTRY POINT: register all handlers in here
   const logger = inputParam.logger
@@ -183,6 +202,9 @@ function registerHandlers (inputParam) {
   httpRewriteUtil.addRewriteUrlRegex('^/test/me/[4]$', '/hello4/bbb/456')
   httpRewriteUtil.addRewriteUrlPathParam('/test/me/5/{hi}/:bye', '/hello5/$1/$2')
   httpRewriteUtil.addRewriteUrlPathParam('/test/me/6/{hi}/:bye', '/hello6/$1/$2')
+
+  // take note below are just examples on how to use endpoint rate limiter using token bucket algorithm
+  httpUtil.registerChainHandler('/hello7', [new MyTokenBucketHandler({ maximumAmt: 2, refillDurationSec: 5, refillAmt: 1 }), new MyChainHandler('My Chain Handler 7', false, param)], [httpUtil.HTTP_METHOD.GET, httpUtil.HTTP_METHOD.POST])
 }
 
 module.exports = {
