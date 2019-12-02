@@ -85,7 +85,7 @@ function processReq (inputParam) {
     urlpath = httpRewriteUtil.getRewriteUrl(inputParam, req.url)
   }
 
-  if (staticFilePathExist(inputParam) && req.url.startsWith(config.Site.StaticFilePath)) {
+  if (httpStaticFileUtil.existStaticFilePath(inputParam) && req.url.startsWith(config.Site.StaticFilePath)) {
     serveStaticFile(inputParam, req.url, req, res)
     return
   }
@@ -173,17 +173,6 @@ function getUrlParamMap (req) {
   } else {
     return undefined
   }
-}
-
-async function staticFilePathExist (inputParam) {
-  const logger = inputParam.logger
-  let exist = false
-  try {
-    exist = await httpStaticFileUtil.existStaticFilePath(inputParam)
-  } catch (err) {
-    logger.error(err)
-  }
-  return exist
 }
 
 async function serveStaticFile (inputParam, url, req, res) {

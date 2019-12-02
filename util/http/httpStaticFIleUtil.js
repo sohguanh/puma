@@ -4,23 +4,21 @@ const mime = require('mime-types')
 global.staticFileUtil = undefined
 
 function existStaticFilePath (inputParam) {
-  return new Promise((resolve) => {
-    if (global.staticFileUtil === undefined) {
-      const config = inputParam.config
-      const logger = inputParam.logger
+  if (global.staticFileUtil === undefined) {
+    const config = inputParam.config
+    const logger = inputParam.logger
 
-      try {
-        global.staticFileUtil = !!((fs.lstatSync(config.Site.StaticFilePath).isDirectory() && fs.existsSync(config.Site.StaticFilePath)))
-        if (config.Site.StaticFilePath[0] !== '/') {
-          config.Site.StaticFilePath = '/' + config.Site.StaticFilePath
-        }
-      } catch (err) {
-        logger.error(err)
-        global.staticFileUtil = false
+    try {
+      global.staticFileUtil = !!((fs.lstatSync(config.Site.StaticFilePath).isDirectory() && fs.existsSync(config.Site.StaticFilePath)))
+      if (config.Site.StaticFilePath[0] !== '/') {
+        config.Site.StaticFilePath = '/' + config.Site.StaticFilePath
       }
+    } catch (err) {
+      logger.error(err)
+      global.staticFileUtil = false
     }
-    resolve(global.staticFileUtil)
-  })
+  }
+  return global.staticFileUtil
 }
 
 function existFile (file, inputParam) {
