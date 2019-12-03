@@ -81,7 +81,7 @@ function processReq (inputParam) {
     return
   }
 
-  if (config.Site.UrlRewrite) {
+  if (config.UrlRewriteConfig.Enable) {
     urlpath = httpRewriteUtil.getRewriteUrl(inputParam, req.url)
   }
 

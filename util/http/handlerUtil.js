@@ -216,12 +216,26 @@ function registerHandlers (inputParam) {
   httpUtil.registerChainHandlerPathParam('/hello6/{hi}/:bye', [new MyChainPathParamHandler('My Path Param Chain Handler 1', true, param), new MyChainPathParamHandler('My Path Param Chain Handler 2', false, param)], [httpUtil.HTTP_METHOD.GET, httpUtil.HTTP_METHOD.POST])
 
   // take note below are just examples on how to add rewrite url. source_url parameter accepted placeholder are {} and : and target_url parameter substituition syntax is $1 $ 2 etc
-  httpRewriteUtil.addRewriteUrl('/test/me/1', '/hello1')
-  httpRewriteUtil.addRewriteUrl('/test/me/2', '/hello2')
-  httpRewriteUtil.addRewriteUrlRegex('^/test/me/[3]$', '/hello3/aaa/123')
-  httpRewriteUtil.addRewriteUrlRegex('^/test/me/[4]$', '/hello4/bbb/456')
-  httpRewriteUtil.addRewriteUrlPathParam('/test/me/5/{hi}/:bye', '/hello5/$1/$2')
-  httpRewriteUtil.addRewriteUrlPathParam('/test/me/6/{hi}/:bye', '/hello6/$1/$2')
+  const data = httpRewriteUtil.getRewriteRules(param)
+  if (data !== undefined) {
+    data.rules.forEach((paramValue, index) => {
+      const item = paramValue
+      if (item.Mode === httpRewriteUtil.REWRITE_MODE.D) {
+        httpRewriteUtil.addRewriteUrl(item.SourceUrl, item.TargetUrl)
+      } else if (item.Mode === httpRewriteUtil.REWRITE_MODE.R) {
+        httpRewriteUtil.addRewriteUrlRegex(item.SourceUrl, item.TargetUrl)
+      } else if (item.Mode === httpRewriteUtil.REWRITE_MODE.P) {
+        httpRewriteUtil.addRewriteUrlPathParam(item.SourceUrl, item.TargetUrl)
+      }
+    })
+  } else {
+    httpRewriteUtil.addRewriteUrl('/test/me/1', '/hello1')
+    httpRewriteUtil.addRewriteUrl('/test/me/2', '/hello2')
+    httpRewriteUtil.addRewriteUrlRegex('^/test/me/[3]$', '/hello3/aaa/123')
+    httpRewriteUtil.addRewriteUrlRegex('^/test/me/[4]$', '/hello4/bbb/456')
+    httpRewriteUtil.addRewriteUrlPathParam('/test/me/5/{hi}/:bye', '/hello5/$1/$2')
+    httpRewriteUtil.addRewriteUrlPathParam('/test/me/6/{hi}/:bye', '/hello6/$1/$2')
+  }
 
   // take note below are just examples on how to use endpoint rate limiter using token bucket algorithm
   httpUtil.registerChainHandler('/hello7', [new MyTokenBucketHandler({ maximumAmt: 2, refillDurationSec: 5, refillAmt: 1, config: param.config }), new MyChainHandler('My Chain Handler 7', false, param)], [httpUtil.HTTP_METHOD.GET, httpUtil.HTTP_METHOD.POST])

@@ -1,3 +1,7 @@
+const fs = require('fs')
+const process = require('process')
+const path = require('path')
+
 // key is source_url, value is target_url
 global.rewriteUrl = new Map()
 
@@ -92,10 +96,30 @@ function getRewriteUrlRegex (inputParam, incomingUrl) {
   return retUrl
 }
 
+const REWRITE_MODE = {
+  D: 'direct',
+  R: 'regex',
+  P: 'path_param'
+}
+
+function getRewriteRules (inputParam) {
+  const config = inputParam.config
+
+  const enable = config.UrlRewriteConfig.Enable
+  const file = process.cwd() + path.sep + config.UrlRewriteConfig.File
+  if (!enable || !(fs.lstatSync(file).isFile() && fs.existsSync(file))) {
+    return undefined
+  }
+
+  return JSON.parse(fs.readFileSync(file))
+}
+
 module.exports = {
   addRewriteUrl,
   addRewriteUrlRegex,
   addRewriteUrlPathParam,
   getRewriteUrl,
-  getRewriteUrlRegex
+  getRewriteUrlRegex,
+  getRewriteRules,
+  REWRITE_MODE
 }
