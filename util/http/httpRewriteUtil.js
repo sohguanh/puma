@@ -114,6 +114,18 @@ function getRewriteRules (inputParam) {
   return JSON.parse(fs.readFileSync(file))
 }
 
+function getHandlerRules (inputParam) {
+  const config = inputParam.config
+
+  const enable = config.HandlerConfig.Enable
+  const file = process.cwd() + path.sep + config.HandlerConfig.File
+  if (!enable || !(fs.lstatSync(file).isFile() && fs.existsSync(file))) {
+    return undefined
+  }
+
+  return JSON.parse(fs.readFileSync(file))
+}
+
 module.exports = {
   addRewriteUrl,
   addRewriteUrlRegex,
@@ -121,5 +133,6 @@ module.exports = {
   getRewriteUrl,
   getRewriteUrlRegex,
   getRewriteRules,
-  REWRITE_MODE
+  REWRITE_MODE,
+  getHandlerRules
 }

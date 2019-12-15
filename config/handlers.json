@@ -1,0 +1,130 @@
+{
+	"handlers": [
+		{
+			"Name": "hello111",
+			"Mode": "handler",
+			"Url": "/hello111",
+			"Methods": ["GET", "POST"],
+			"Handler": [
+				{			
+					"Klass": "MyCompanyHandler",
+					"Attributes": [
+						{
+							"name": "My Company Handler"
+						}
+					]
+				}
+			]
+		},
+		{
+			"Name": "hello222",
+			"Mode": "chain_handler",
+			"Url": "/hello222",
+			"Methods": ["GET", "POST"],
+			"Handler": [
+				{				
+					"Klass": "MyCompanyChainHandler",
+					"Attributes": [
+						{
+							"name": "My Company Chain Handler 1",
+                            "execNextHandlerFlag": true				
+						}
+					]
+				},
+				{				
+					"Klass": "MyCompanyChainHandler",
+					"Attributes": [
+						{
+							"name": "My Company Chain Handler 2",
+                            "execNextHandlerFlag": false				
+						}
+					]
+				}				
+			]
+		},
+		{
+			"Name": "hello333",
+			"Mode": "handler_regex",
+			"Url": "^/hello333/.*/123+",
+			"Methods": ["GET", "POST"],
+			"Handler": [
+				{				
+					"Klass": "MyCompanyHandler",
+					"Attributes": [
+						{
+							"name": "My Company Regex Handler"
+						}
+					]
+				}
+			]
+		},
+		{
+			"Name": "hello444",
+			"Mode": "chain_handler_regex",
+			"Url": "^/hello444/.*/456$",
+			"Methods": ["GET", "POST"],
+			"Handler": [
+				{					
+					"Klass": "MyCompanyChainHandler",
+					"Attributes": [
+						{
+							"name": "My Company Chain Regex Handler 1",
+                            "execNextHandlerFlag": true							
+						}
+					]
+				},
+				{				
+					"Klass": "MyCompanyChainHandler",
+					"Attributes": [
+						{
+							"name": "My Company Chain Regex Handler 2",
+                            "execNextHandlerFlag": false				
+						}
+					]
+				}				
+			]
+		},
+		{
+			"Name": "hello555",
+			"Mode": "handler_path_param",
+			"Url": "/hello555/{hi}/:bye",
+			"Methods": ["GET", "POST"],
+			"Handler": [
+				{				
+					"Klass": "MyCompanyPathParamHandler",
+					"Attributes": [
+						{
+							"name": "My Company Path Param Handler"
+						}
+					]
+				}
+			]
+		},
+		{
+			"Name": "hello666",
+			"Mode": "chain_handler_path_param",
+			"Url": "/hello666/{hi}/:bye",
+			"Methods": ["GET", "POST"],
+			"Handler": [
+				{			
+					"Klass": "MyCompanyChainPathParamHandler",
+					"Attributes": [
+						{
+							"name": "My Company Chain Path Param Handler 1",
+                            "execNextHandlerFlag": true							
+						}
+					]
+				},
+				{				
+					"Klass": "MyCompanyChainPathParamHandler",
+					"Attributes": [
+						{
+							"name": "My Company Chain Path Param Handler 2",
+                            "execNextHandlerFlag": false							
+						}
+					]
+				}				
+			]
+		}		
+	]
+}
