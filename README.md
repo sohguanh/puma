@@ -13,6 +13,92 @@ Ensure config/config.json are setup correctly for your environment.
 *Step 3*
 All application specific code are to be added inside util/http/handlerUtil.js. Refer to the extensive comments in the file to learn how to add your own handler for the url. function registerHandlers to register your handler. function startUpInit, shutdownCleanUp show small examples on how to use dbPool which interface with MySQL.
 
+If your application specific handlers are very simple, you can configure them inside config/handlers.json. Similarly if your url rewrite rules are very simple, you can configure them inside config/urlrewrite.json
+
+The code snippet to read from config file and register handers are in util/http/handlerUtil.js from line 218 onwards.
+```
+  const dataHandler = httpRewriteUtil.getHandlerRules(param)
+  if (dataHandler !== undefined) {
+    const process = require('process')
+    const path = require('path')
+    const modHandler = require(process.cwd() + path.sep + 'sg/mycom/handler/handler')
+    const modChainHandler = require(process.cwd() + path.sep + 'sg/mycom/handler/chainHandler')
+    const modPathParamHandler = require(process.cwd() + path.sep + 'sg/mycom/handler/pathParamHandler')
+    const modChainPathParamHandler = require(process.cwd() + path.sep + 'sg/mycom/handler/chainPathParamHandler')
+
+    dataHandler.handlers.forEach((paramValue, index) => {
+      const item = paramValue
+      if (['handler', 'handler_regex', 'handler_path_param'].includes(item.Mode)) {
+        const handle = item.Handler[0]
+        let obj = null
+        if (item.Mode === 'handler') {
+          obj = eval('new modHandler.' + handle.Klass + '()')
+        } else if (item.Mode === 'handler_regex') {
+          obj = eval('new modHandler.' + handle.Klass + '()')
+        } else if (item.Mode === 'handler_path_param') {
+          obj = eval('new modPathParamHandler.' + handle.Klass + '()')
+        }
+        handle.Attributes.forEach((val, ind) => {
+          for (const key in val) {
+            obj[key] = val[key]
+          }
+        })
+
+        if (item.Mode === 'handler') {
+          httpUtil.registerHandler(item.Url, obj, item.Methods)
+        } else if (item.Mode === 'handler_regex') {
+          httpUtil.registerHandlerRegex(item.Url, obj, item.Methods)
+        } else if (item.Mode === 'handler_path_param') {
+          httpUtil.registerHandlerPathParam(item.Url, obj, item.Methods)
+        }
+      } else if (['chain_handler', 'chain_handler_regex', 'chain_handler_path_param'].includes(item.Mode)) {
+        const objArr = []
+        item.Handler.forEach((handle, ind) => {
+          let obj = null
+          if (item.Mode === 'chain_handler') {
+            obj = eval('new modChainHandler.' + handle.Klass + '()')
+          } else if (item.Mode === 'chain_handler_regex') {
+            obj = eval('new modChainHandler.' + handle.Klass + '()')
+          } else if (item.Mode === 'chain_handler_path_param') {
+            obj = eval('new modChainPathParamHandler.' + handle.Klass + '()')
+          }
+          handle.Attributes.forEach((val, ind) => {
+            for (const key in val) {
+              obj[key] = val[key]
+            }
+          })
+
+          objArr.push(obj)
+        })
+        if (item.Mode === 'chain_handler') {
+          httpUtil.registerChainHandler(item.Url, objArr, item.Methods)
+        } else if (item.Mode === 'chain_handler_regex') {
+          httpUtil.registerChainHandlerRegex(item.Url, objArr, item.Methods)
+        } else if (item.Mode === 'chain_handler_path_param') {
+          httpUtil.registerChainHandlerPathParam(item.Url, objArr, item.Methods)
+        }
+      }
+    })
+  }
+```
+
+The code snippet to read from config file and register url rewrite rules are in util/http/handlerUtil.js from line 283 onwards.
+```
+  const dataRewriteRules = httpRewriteUtil.getRewriteRules(param)
+  if (dataRewriteRules !== undefined) {
+    dataRewriteRules.rules.forEach((paramValue, index) => {
+      const item = paramValue
+      if (item.Mode === httpRewriteUtil.REWRITE_MODE.D) {
+        httpRewriteUtil.addRewriteUrl(item.SourceUrl, item.TargetUrl)
+      } else if (item.Mode === httpRewriteUtil.REWRITE_MODE.R) {
+        httpRewriteUtil.addRewriteUrlRegex(item.SourceUrl, item.TargetUrl)
+      } else if (item.Mode === httpRewriteUtil.REWRITE_MODE.P) {
+        httpRewriteUtil.addRewriteUrlPathParam(item.SourceUrl, item.TargetUrl)
+      }
+    })
+  }
+```
+
 *Step 4*
 Once you get the hang of how the framework works and want to start coding from the bare minimum please refer to below.
 1. Remove or move elsewhere the existing util/http/handlerUtil.js
