@@ -13,6 +13,7 @@ Ensure config/config.json are setup correctly for your environment.
 *Step 3*
 All application specific code are to be added inside util/http/handlerUtil.js. Refer to the extensive comments in the file to learn how to add your own handler for the url. function registerHandlers to register your handler. function startUpInit, shutdownCleanUp show small examples on how to use dbPool which interface with MySQL.
 
+*Step 4*
 If your application specific handlers are very simple, you can configure them inside config/handlers.json. Similarly if your url rewrite rules are very simple, you can configure them inside config/urlrewrite.json
 
 The code snippet to read from config file and register handers are in util/http/handlerUtil.js from line 218 onwards.
@@ -99,13 +100,13 @@ The code snippet to read from config file and register url rewrite rules are in 
   }
 ```
 
-*Step 4*
+*Step 5*
 Once you get the hang of how the framework works and want to start coding from the bare minimum please refer to below.
 1. Remove or move elsewhere the existing util/http/handlerUtil.js
 2. Rename existing util/http/handlerUtilBare.js to util/http/handlerUtil.js
 3. You can now start to code from the bare minimum
 
-*Step 5*
+*Step 6*
 For MySQL interfacing, please take note by default it is turned off at code level. Once you get MySQL up, please refer to existing ```puma.js``` The comments are quite clear on how to turn off and on. You just need to comment and uncomment the relevant lines.
 - line 8        // const dbPool = require('./util/db/dbUtil').getDbPool(config) //uncomment this line once MySQL is up
 - line 9        const dbPool = undefined // comment/remove this line once MySQL is up
