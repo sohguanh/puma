@@ -226,34 +226,17 @@ function registerHandlers (inputParam) {
 
     dataHandler.handlers.forEach((paramValue, index) => {
       const item = paramValue
-      if (['handler', 'handler_regex', 'handler_path_param'].includes(item.Mode)) {
-        const handle = item.Handler[0]
-        let obj = null
-        if (item.Mode === 'handler') {
-          obj = eval('new modHandler.' + handle.Klass + '()')
-        } else if (item.Mode === 'handler_regex') {
-          obj = eval('new modHandler.' + handle.Klass + '()')
-        } else if (item.Mode === 'handler_path_param') {
-          obj = eval('new modPathParamHandler.' + handle.Klass + '()')
-        }
-        handle.Attributes.forEach((val, ind) => {
-          for (const key in val) {
-            obj[key] = val[key]
-          }
-        })
-
-        if (item.Mode === 'handler') {
-          httpUtil.registerHandler(item.Url, obj, item.Methods)
-        } else if (item.Mode === 'handler_regex') {
-          httpUtil.registerHandlerRegex(item.Url, obj, item.Methods)
-        } else if (item.Mode === 'handler_path_param') {
-          httpUtil.registerHandlerPathParam(item.Url, obj, item.Methods)
-        }
-      } else if (['chain_handler', 'chain_handler_regex', 'chain_handler_path_param'].includes(item.Mode)) {
+      if (['handler', 'handler_regex', 'handler_path_param', 'chain_handler', 'chain_handler_regex', 'chain_handler_path_param'].includes(item.Mode)) {
         const objArr = []
         item.Handler.forEach((handle, ind) => {
           let obj = null
-          if (item.Mode === 'chain_handler') {
+          if (item.Mode === 'handler') {
+            obj = eval('new modHandler.' + handle.Klass + '()')
+          } else if (item.Mode === 'handler_regex') {
+            obj = eval('new modHandler.' + handle.Klass + '()')
+          } else if (item.Mode === 'handler_path_param') {
+            obj = eval('new modPathParamHandler.' + handle.Klass + '()')
+          } else if (item.Mode === 'chain_handler') {
             obj = eval('new modChainHandler.' + handle.Klass + '()')
           } else if (item.Mode === 'chain_handler_regex') {
             obj = eval('new modChainHandler.' + handle.Klass + '()')
@@ -268,7 +251,13 @@ function registerHandlers (inputParam) {
 
           objArr.push(obj)
         })
-        if (item.Mode === 'chain_handler') {
+        if (item.Mode === 'handler') {
+          httpUtil.registerHandler(item.Url, objArr[0], item.Methods)
+        } else if (item.Mode === 'handler_regex') {
+          httpUtil.registerHandlerRegex(item.Url, objArr[0], item.Methods)
+        } else if (item.Mode === 'handler_path_param') {
+          httpUtil.registerHandlerPathParam(item.Url, objArr[0], item.Methods)
+        } else if (item.Mode === 'chain_handler') {
           httpUtil.registerChainHandler(item.Url, objArr, item.Methods)
         } else if (item.Mode === 'chain_handler_regex') {
           httpUtil.registerChainHandlerRegex(item.Url, objArr, item.Methods)
